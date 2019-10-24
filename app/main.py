@@ -24,6 +24,8 @@ class User(db.Model):
     username = db.Column(db.String(32), index=True)
     password_hash = db.Column(db.String(64))
     ssh_key = db.Column(db.VARCHAR(2000))
+    expiration = db.Column(db.Integer)
+    email_addr = db.Column(db.VARCHAR(100))
 
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
@@ -61,7 +63,7 @@ def verify_password(username_or_token, password):
     return True
 
 
-@app.route('/api/users', methods=['POST'])
+@app.route('/api/admin/users', methods=['POST'])
 def new_user():
     username = request.json.get('username')
     password = request.json.get('password')
@@ -77,9 +79,9 @@ def new_user():
             {'Location': url_for('get_user', id=user.id, _external=True)})
 
 
-@app.route('/api/users/<int:id>')
-def get_user(id):
-    user = User.query.get(id)
+@app.route('/api/admin/<string:user_name>')
+def get_user(user_name):
+    user = User.query.get(user_name)
     if not user:
         abort(400)
     return jsonify({'username': user.username})
