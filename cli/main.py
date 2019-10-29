@@ -3,6 +3,15 @@ import os.path
 import configparser
 from pathlib import Path
 
+def config_reader(conf):
+    config = configparser.ConfigParser()
+    config.read(conf)
+    auth_info = {
+        "user_name" : config['DEFAULT']['user_name'],
+        "passwd" : config['DEFAULT']['passwd'],
+        "server_url" : config['DEFAULT']['url']
+    }
+    return auth_info
 
 @click.group()
 @click.pass_context
@@ -36,20 +45,24 @@ from pathlib import Path
     help='Email address for user'
 )
 def main(ctx, user, passwd, ssh_key,  expiration, email, config="/.ssso"):
-    config= str(Path.home()) + config
+    conf_dir= str(Path.home()) + config
+    conf_file = conf_dir + "/config"
+    auth_info = config_reader(conf_file)
     ctx.obj = {
         "user": user,
         "passwd": passwd,
         "ssh_key": ssh_key,
         "expiration": expiration,
         "email": email,
-        "config": config
+        "config": conf_dir,
+        "auth_info": auth_info
     }
 
 @main.command()
 @click.pass_context
-def add(ctx,zack):
-    click.echo("Adding user %s" % ctx.obj['user'])
+def add(ctx):
+    # click.echo("Adding user %s" % ctx.obj['user'])
+    click.echo(ctx.obj['auth_info']['user_name'])
 
 @main.command()
 @click.pass_context
