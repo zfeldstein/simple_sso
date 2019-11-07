@@ -1,7 +1,17 @@
 import click
 import os.path
 import configparser
+import requests
+
+from requests.auth import HTTPBasicAuth
 from pathlib import Path
+
+def api_auth(conn_info):
+    response = requests.get(
+        conn_info["server_url"],
+        auth=HTTPBasicAuth(conn_info['user_name'], conn_info['passwd'])
+    )
+
 
 def config_reader(conf):
     config = configparser.ConfigParser()
@@ -27,6 +37,12 @@ def config_reader(conf):
     help='Password for user, leave blank for random'
 )
 @click.option(
+    '--config',
+    '-c',
+    default='/.ssso',
+    help='Path to config directory for ssso'
+)
+@click.option(
     '--ssh_key',
     '-s',
     default=None,
@@ -44,7 +60,7 @@ def config_reader(conf):
     default=None,
     help='Email address for user'
 )
-def main(ctx, user, passwd, ssh_key,  expiration, email, config="/.ssso"):
+def main(ctx, user, passwd, ssh_key,  expiration, email, config):
     conf_dir= str(Path.home()) + config
     conf_file = conf_dir + "/config"
     auth_info = config_reader(conf_file)

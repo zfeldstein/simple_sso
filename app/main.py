@@ -67,21 +67,27 @@ def verify_password(username_or_token, password):
 def new_user():
     username = request.json.get('username')
     password = request.json.get('password')
+    ssh_key = request.json.get('ssh_key')
+    expiration = request.json.get('expiration')
+    email_addr = request.json.get('email_addr')
     if username is None or password is None:
-        abort(400)    # missing arguments
+        abort(400)# missing arguments
     if User.query.filter_by(username=username).first() is not None:
-        abort(400)    # existing user
+        print("Something useful")    # existing user
     user = User(username=username)
     user.hash_password(password)
+    user.expiration
+    user.ssh_key
+    user.email_addr
     db.session.add(user)
     db.session.commit()
     return (jsonify({'username': user.username}), 201,
             {'Location': url_for('get_user', id=user.id, _external=True)})
 
 
-@app.route('/api/admin/<string:user_name>')
-def get_user(user_name):
-    user = User.query.get(user_name)
+@app.route('/api/admin/<int:id>')
+def get_user(id):
+    user = User.query.get(id)
     if not user:
         abort(400)
     return jsonify({'username': user.username})
@@ -101,6 +107,6 @@ def get_resource():
 
 
 if __name__ == '__main__':
-    if not os.path.exists('db.sqlite'):
+    if not os.path.exists('d2.sqlite'):
         db.create_all()
     app.run(debug=True)
