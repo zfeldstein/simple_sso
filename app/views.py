@@ -1,20 +1,8 @@
-#!/usr/bin/env python
 import os
-from flask import Flask, abort, request, jsonify, g, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_httpauth import HTTPBasicAuth
-from passlib.apps import custom_app_context as pwd_context
-from itsdangerous import (TimedJSONWebSignatureSerializer
-                          as Serializer, BadSignature, SignatureExpired)
-import users
+from app import app, auth, db
+from flask import abort, request, jsonify, g, url_for
+from app.models import Admins, Users
 
-# initialization
-app = Flask(__name__)
-
-
-# extensions
-db = SQLAlchemy(app)
-auth = HTTPBasicAuth()
 
 
 @auth.verify_password
@@ -74,6 +62,6 @@ def get_resource():
 
 
 if __name__ == '__main__':
-    if not os.path.exists('d2.sqlite'):
+    if not os.path.exists('d3.sqlite'):
         db.create_all()
     app.run(debug=True)
