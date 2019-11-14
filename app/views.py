@@ -62,6 +62,6 @@ def get_resource():
 
 
 if __name__ == '__main__':
-    if not os.path.exists('d3.sqlite'):
-        db.create_all()
-    app.run(debug=True)
+    # if not os.path.exists('d3.sqlite'):
+    #     db.create_all()
+    app.run(debug=False)
