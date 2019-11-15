@@ -25,11 +25,21 @@ def verify_password(username, password):
     g.user = user
     return True
 
+@app.route('/api/users/<int:id>', methods=['PUT'])
+@auth.login_required
+def update_user(id):
+    check_user_permissions(id)
+    print(request.json)
+    user = Users.query.get(id)
+    if not user:
+        abort(404)
+    return jsonify("world")
+
 
 @app.route('/api/users', methods=['POST'])
 @auth.login_required
 def new_user():
-    check_user_permissions()
+    check_user_permissions(admin_required=True)
     username = request.json.get('username')
     password = request.json.get('password')
     ssh_key = request.json.get('ssh_key')
