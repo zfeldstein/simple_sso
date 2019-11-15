@@ -1,39 +1,42 @@
 import os
 from app import app, auth, db
 from flask import abort, request, jsonify, g, url_for
-from app.models import Admins, Users
+from app.models import Users
 
 
 
 @auth.verify_password
-def verify_password(username_or_token, password):
-    # first try to authenticate by token
-    user = Admins.verify_auth_token(username_or_token)
+def verify_password(username, password):
+    # try to authenticate with username/password
+    user = Users.query.filter_by(username=username).first()
     if not user:
-        # try to authenticate with username/password
-        user = Admins.query.filter_by(username=username_or_token).first()
-        if not user or not user.verify_password(password):
-            return False
+        return False
+    passwd = Users.verify_password(password)
+    if not passwd:
+        return False
     g.user = user
     return True
 
 
 @app.route('/api/admin/users', methods=['POST'])
+@auth.login_required
 def new_user():
     username = request.json.get('username')
     password = request.json.get('password')
     ssh_key = request.json.get('ssh_key')
     expiration = request.json.get('expiration')
     email_addr = request.json.get('email_addr')
+    is_admin = request.json.get('is_admin')
     if username is None or password is None:
         abort(400)# missing arguments
-    if Admins.query.filter_by(username=username).first() is not None:
+    if Users.query.filter_by(username=username).first() is not None:
         abort(400) # existing user
-    user = Admins(username=username)
+    user = Users(username=username)
     user.hash_password(password)
     user.expiration
     user.ssh_key
     user.email_addr
+    user.is_admin
     db.session.add(user)
     db.session.commit()
     return (jsonify({'username': user.username}), 201,
@@ -41,10 +44,11 @@ def new_user():
 
 
 @app.route('/api/admin/<int:id>')
+@auth.login_required
 def get_user(id):
-    user = Admins.query.get(id)
+    user = Users.query.get(id)
     if not user:
-        abort(400)
+        abort(404)
     return jsonify({'username': user.username})
 
 
