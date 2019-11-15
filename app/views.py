@@ -4,18 +4,18 @@ from flask import abort, request, jsonify, g, url_for
 from app.models import Users
 
 #This method is called for user specific resources
-def check_user_permissions(id=0):
+def check_user_permissions(id=0, admin_required=False):
     user = Users.query.filter_by(username=g.user.username).first()
     if user.is_admin:
         return True
-    if id == g.user.id:
-        return True
+    if not admin_required:
+        if id == g.user.id:
+            return True
     abort(401)
 
 @auth.verify_password
 def verify_password(username, password):
     # try to authenticate with username/password
-    print("HERE IS THE ID {}".format(auth.realm))
     user = Users.query.filter_by(username=username).first()
     if not user:
         return False
@@ -26,7 +26,7 @@ def verify_password(username, password):
     return True
 
 
-@app.route('/api/admin/users', methods=['POST'])
+@app.route('/api/users', methods=['POST'])
 @auth.login_required
 def new_user():
     check_user_permissions()
@@ -48,19 +48,31 @@ def new_user():
     user.is_admin
     db.session.add(user)
     db.session.commit()
-    return (jsonify({'username': user.username}), 201,
-            {'Location': url_for('get_user', id=user.id, _external=True)})
+    # return (jsonify({'username': user.username}), 201,
+    #         {'Location': url_for('get_user', id=user.id, _external=True)})
+    return get_user(user.id)
 
 
-@app.route('/api/admin/<int:id>')
+@app.route('/api/users/<int:id>', methods=['GET'])
 @auth.login_required
 def get_user(id):
     check_user_permissions(id)
     user = Users.query.get(id)
     if not user:
         abort(404)
-    return jsonify({'username': user.username})
+    return jsonify({'username': user.username, 'id': user.id})
 
+# Delete User
+@app.route('/api/users/<int:id>', methods=['DELETE'])
+@auth.login_required
+def del_user(id):
+    if id == 1:
+        return( jsonify( {"response": "Can't delete admin account"}), 400)
+    check_user_permissions(id, admin_required=True)
+    user = Users.query.filter_by(id = id).one()
+    db.session.delete(user)
+    db.session.commit()
+    return(jsonify({"response": "User {} deleted".format(user.username)}), 201)
 
 @app.route('/api/token')
 @auth.login_required
