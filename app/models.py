@@ -6,7 +6,7 @@ from itsdangerous import (TimedJSONWebSignatureSerializer
 class Users(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), index=True)
+    username = db.Column(db.String(32), unique=True, index=True)
     passwd = db.Column(db.String(64))
     ssh_key = db.Column(db.VARCHAR(2000))
     expiration = db.Column(db.Integer)

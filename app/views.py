@@ -3,15 +3,23 @@ from app import app, auth, db
 from flask import abort, request, jsonify, g, url_for
 from app.models import Users
 
-
+#This method is called for user specific resources
+def check_user_permissions(id=0):
+    user = Users.query.filter_by(username=g.user.username).first()
+    if user.is_admin:
+        return True
+    if id == g.user.id:
+        return True
+    abort(401)
 
 @auth.verify_password
 def verify_password(username, password):
     # try to authenticate with username/password
+    print("HERE IS THE ID {}".format(auth.realm))
     user = Users.query.filter_by(username=username).first()
     if not user:
         return False
-    passwd = Users.verify_password(password)
+    passwd = user.verify_password(password)
     if not passwd:
         return False
     g.user = user
@@ -21,6 +29,7 @@ def verify_password(username, password):
 @app.route('/api/admin/users', methods=['POST'])
 @auth.login_required
 def new_user():
+    check_user_permissions()
     username = request.json.get('username')
     password = request.json.get('password')
     ssh_key = request.json.get('ssh_key')
@@ -46,6 +55,7 @@ def new_user():
 @app.route('/api/admin/<int:id>')
 @auth.login_required
 def get_user(id):
+    check_user_permissions(id)
     user = Users.query.get(id)
     if not user:
         abort(404)
