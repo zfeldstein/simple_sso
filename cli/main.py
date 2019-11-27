@@ -4,7 +4,14 @@ import configparser
 import requests
 
 from requests.auth import HTTPBasicAuth
-from pathlib import Path
+from os.path import expanduser
+
+# Don't allow user to change config files
+home_dir = expanduser("~")
+# This is ~/.ssso
+config_path = '{}/.ssso'.format(home_dir)
+# This is ~/.ssso/config
+config_file = '{}/config'.format(config_path)
 
 def api_auth(conn_info):
     response = requests.get(
@@ -17,9 +24,12 @@ def config_reader(conf):
     config = configparser.ConfigParser()
     config.read(conf)
     auth_info = {
-        "user_name" : config['DEFAULT']['user_name'],
+        "username" : config['DEFAULT']['username'],
         "passwd" : config['DEFAULT']['passwd'],
-        "server_url" : config['DEFAULT']['url']
+        "server_url" : config['DEFAULT']['server_url'],
+        "ssh_key" : config['DEFAULT']['ssh_key'],
+        "expiration" : config['DEFAULT']['expiration'],
+        "email": config['DEFAULT']['email']
     }
     return auth_info
 
@@ -35,12 +45,6 @@ def config_reader(conf):
     '-p',
     default=None,
     help='Password for user, leave blank for random'
-)
-@click.option(
-    '--config',
-    '-c',
-    default='/.ssso',
-    help='Path to config directory for ssso'
 )
 @click.option(
     '--ssh_key',
@@ -60,24 +64,28 @@ def config_reader(conf):
     default=None,
     help='Email address for user'
 )
-def main(ctx, user, passwd, ssh_key,  expiration, email, config):
-    conf_dir= str(Path.home()) + config
-    conf_file = conf_dir + "/config"
-    auth_info = config_reader(conf_file)
+# Use config values by default override with CLI
+def main(ctx, user, passwd, ssh_key,  expiration, email):
+    if not os.path.exists(config_file):
+        ctx.invoke(new_config)
+    auth_info = config_reader(config_file)
+
     ctx.obj = {
-        "user": user,
-        "passwd": passwd,
-        "ssh_key": ssh_key,
-        "expiration": expiration,
-        "email": email,
-        "config": conf_dir,
-        "auth_info": auth_info
+        "username": auth_info['username'],
+        "passwd": auth_info['passwd'],
+        "ssh_key": auth_info['ssh_key'],
+        "expiration": auth_info['expiration'],
+        "email": auth_info['email'],
+        "server_url" : auth_info['server_url']
     }
 
 @main.command()
 @click.pass_context
 def add(ctx):
     # click.echo("Adding user %s" % ctx.obj['user'])
+    # curl -i -X POST
+    # -H "Content-Type: application/json"
+    # -d '{"username":"migu2ell","password":"pythlon"}' http://127.0.0.1:5000/api/users
     click.echo(ctx.obj['auth_info']['user_name'])
 
 @main.command()
@@ -88,7 +96,7 @@ def delete(ctx):
 @main.command()
 @click.pass_context
 def list(ctx):
-    pass
+    click.echo("Listing Users")    
 
 @main.command()
 @click.pass_context
@@ -102,19 +110,21 @@ def update(ctx):
 # Create a ~/.ssso/config and use for auth with server
 @main.command()
 @click.pass_context
-def config(ctx):
-    config_path = ctx.obj["config"] + "/config"
-    if not os.path.exists(config_path):
+def new_config(ctx):
+    if not os.path.exists(config_file):
         #Create .ssso dir
-        if not os.path.exists(ctx.obj["config"]):
-            os.mkdir(ctx.obj["config"])
+        if not os.path.exists(config_path):
+            os.mkdir(config_path)
         config = configparser.ConfigParser()
         config['DEFAULT'] = {
-            "user_name" : click.prompt("Enter ssso Username"),
+            "username" : click.prompt("Enter ssso Username"),
             "passwd" : click.prompt("Enter ssso password"),
-            "url" : click.prompt("Enter ssso URL")
+            "server_url" : click.prompt("Enter ssso server URL"),
+            "ssh_key": click.prompt("Enter path to public ssh_key"),
+            "expiration": click.prompt("Enter time key expires in days"),
+            "email" : click.prompt("Enter your email address")
         }
-        with open(config_path, 'w') as configfile:
+        with open(config_file, 'w') as configfile:
             config.write(configfile)
 
 if __name__ == '__main__':

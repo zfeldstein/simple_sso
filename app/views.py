@@ -62,12 +62,12 @@ def new_user():
     #         {'Location': url_for('get_user', id=user.id, _external=True)})
     return get_user(user.id)
 
-
-@app.route('/api/users/<int:id>', methods=['GET'])
+# List users
+@app.route('/api/users/<str:username>', methods=['GET'])
 @auth.login_required
-def get_user(id):
-    check_user_permissions(id)
-    user = Users.query.get(id)
+def get_user(username):
+    check_user_permissions(username)
+    user = Users.query.get(username)
     if not user:
         abort(404)
     return jsonify({'username': user.username, 'id': user.id})
