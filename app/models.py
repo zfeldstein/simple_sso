@@ -1,4 +1,4 @@
-from app import db, app
+from app import db, app, ma
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
@@ -35,3 +35,8 @@ class Users(db.Model):
             return None    # invalid token
         user = Users.query.get(data['id'])
         return user
+
+class UsersSchema(ma.ModelSchema):
+    class Meta:
+        model = Users
+        # sqla_sesion = db.session

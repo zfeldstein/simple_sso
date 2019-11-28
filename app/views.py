@@ -1,7 +1,9 @@
 import os
 from app import app, auth, db
-from flask import abort, request, jsonify, g, url_for
-from app.models import Users
+from flask import abort, request, jsonify, g, url_for, Response
+from app.models import Users, UsersSchema
+
+users_schema = UsersSchema(many=True)
 
 #This method is called for user specific resources
 def check_user_permissions(id=0, admin_required=False):
@@ -63,14 +65,12 @@ def new_user():
     return get_user(user.id)
 
 # List users
-@app.route('/api/users/<str:username>', methods=['GET'])
+@app.route('/api/users', methods=['GET'])
 @auth.login_required
-def get_user(username):
-    check_user_permissions(username)
-    user = Users.query.get(username)
-    if not user:
-        abort(404)
-    return jsonify({'username': user.username, 'id': user.id})
+def get_user():
+    check_user_permissions()
+    users = Users.query.all()
+    return(jsonify(users_schema.dump(users)))
 
 # Delete User
 @app.route('/api/users/<int:id>', methods=['DELETE'])

@@ -69,6 +69,7 @@ def main(ctx, user, passwd, ssh_key,  expiration, email):
     if not os.path.exists(config_file):
         ctx.invoke(new_config)
     auth_info = config_reader(config_file)
+    server_url = "{}/api".format(auth_info['server_url'])
 
     ctx.obj = {
         "username": auth_info['username'],
@@ -76,7 +77,7 @@ def main(ctx, user, passwd, ssh_key,  expiration, email):
         "ssh_key": auth_info['ssh_key'],
         "expiration": auth_info['expiration'],
         "email": auth_info['email'],
-        "server_url" : auth_info['server_url']
+        "server_url" : server_url
     }
 
 @main.command()
@@ -96,7 +97,16 @@ def delete(ctx):
 @main.command()
 @click.pass_context
 def list(ctx):
-    click.echo("Listing Users")    
+    url = "{}/users".format(ctx.obj['server_url'])
+    click.echo("Listing Users")
+    response = requests.get(
+        url,
+        auth=HTTPBasicAuth(
+            ctx.obj['username'],
+            ctx.obj['passwd']
+        )
+    )
+    click.echo(response.text)
 
 @main.command()
 @click.pass_context
