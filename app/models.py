@@ -39,4 +39,11 @@ class Users(db.Model):
 class UsersSchema(ma.ModelSchema):
     class Meta:
         model = Users
-        # sqla_sesion = db.session
+        fields = (
+            "id",
+            "email_addr",
+            "expiration",
+            "is_admin",
+            "ssh_key",
+            "username"
+        )
