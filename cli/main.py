@@ -2,6 +2,7 @@ import click
 import os.path
 import configparser
 import requests
+from tabulate import tabulate
 
 from requests.auth import HTTPBasicAuth
 from os.path import expanduser
@@ -106,7 +107,27 @@ def list(ctx):
             ctx.obj['passwd']
         )
     )
-    click.echo(response.text)
+    response = response.json()
+    resp_table = []
+    for user in response:
+        resp_table.append(
+            [
+                user['id'] or "None", # Probably a better way to do this ha
+                user['username'] or "None",
+                user['email_addr'] or "None",
+                user['expiration'] or "None",
+                user['is_admin'] or "None",
+                user['ssh_key'] or "None"
+            ]
+        )
+    click.echo(tabulate(resp_table, headers=[
+        "user_id",
+        "username",
+        "email",
+        "key expiration",
+        "is_admin",
+        "ssh_key"
+    ]))
 
 @main.command()
 @click.pass_context
