@@ -81,6 +81,9 @@ def main(ctx, user, passwd, ssh_key,  expiration, email):
         "server_url" : server_url
     }
 
+#
+# Add users
+#
 @main.command()
 @click.pass_context
 def add(ctx):
@@ -94,7 +97,9 @@ def add(ctx):
 @click.pass_context
 def delete(ctx):
     pass
-
+#
+# List users
+#
 @main.command()
 @click.pass_context
 def list(ctx):
@@ -116,6 +121,7 @@ def list(ctx):
                 response.status_code
             )
         )
+        exit()
     response = response.json()
     resp_table = []
     for user in response:
