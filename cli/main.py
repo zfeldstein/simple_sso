@@ -107,12 +107,21 @@ def list(ctx):
             ctx.obj['passwd']
         )
     )
+    if response.status_code == 401:
+        click.echo("Only admins can list users")
+        exit()
+    if not response.status_code == 201:
+        click.echo(
+            "An error occured, http return code {}".format(
+                response.status_code
+            )
+        )
     response = response.json()
     resp_table = []
     for user in response:
         resp_table.append(
             [
-                user['id'] or "None", # Probably a better way to do this ha
+                user['id'] or "None", # Probably a better way to do this lol
                 user['username'] or "None",
                 user['email_addr'] or "None",
                 user['expiration'] or "None",

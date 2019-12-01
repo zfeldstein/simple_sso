@@ -70,7 +70,7 @@ def new_user():
 def get_user():
     check_user_permissions()
     users = Users.query.all()
-    return(jsonify(users_schema.dump(users)))
+    return(jsonify(users_schema.dump(users)), 201)
 
 # Delete User
 @app.route('/api/users/<int:id>', methods=['DELETE'])
