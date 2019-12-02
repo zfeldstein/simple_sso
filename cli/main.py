@@ -48,6 +48,8 @@ def api_call(ctx, url, method='get', user_hash={}):
     # POST requests (user add)
     if method.lower() == 'post':
         response = requests.post(url, auth=auth, json=user_hash)
+    if method.lower() == 'delete':
+        response = requests.delete(url, auth=auth)
 
     return (check_response(response))
 #
@@ -107,7 +109,7 @@ def main(ctx, user, passwd, ssh_key,  expiration, email):
     auth_info = config_reader(config_file)
     server_url = "{}/api".format(auth_info['server_url'])
     user_hash = {
-        "user": user,
+        "username": user,
         "passwd": passwd,
         "ssh_key": ssh_key,
         "expiration": expiration,
@@ -130,7 +132,14 @@ def main(ctx, user, passwd, ssh_key,  expiration, email):
 @main.command()
 @click.pass_context
 def delete(ctx):
-    pass
+    username = ctx.obj['user_hash']['username']
+    url = "{}/users/{}".format(
+        ctx.obj['server_url'],
+        username
+    )
+    click.echo("Deleting User {}".format(username))
+    response = api_call(ctx, url, method='delete')
+    click.echo(response.text)
 
 #
 # Add users
@@ -140,7 +149,6 @@ def delete(ctx):
 def add(ctx):
     url = "{}/users".format(ctx.obj['server_url'])
     click.echo("Adding user ")
-    # user_hash = json.dumps(ctx.obj['user_hash'])
     user_hash = ctx.obj['user_hash']
     response = api_call(ctx, url, method='post',user_hash=user_hash)
     print(response.text)

@@ -74,13 +74,13 @@ def get_user():
     return(jsonify(users_schema.dump(users)), 201)
 
 # Delete User
-@app.route('/api/users/<int:id>', methods=['DELETE'])
+@app.route('/api/users/<string:username>', methods=['DELETE'])
 @auth.login_required
-def del_user(id):
-    if id == 1:
+def del_user(username):
+    if username == 'admin':
         return( jsonify( {"response": "Can't delete admin account"}), 400)
     check_user_permissions(id, admin_required=True)
-    user = Users.query.filter_by(id = id).one()
+    user = Users.query.filter_by(username=username).one()
     db.session.delete(user)
     db.session.commit()
     return(jsonify({"response": "User {} deleted".format(user.username)}), 201)
