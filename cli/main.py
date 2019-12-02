@@ -2,6 +2,7 @@ import click
 import os.path
 import configparser
 import requests
+import json
 from tabulate import tabulate
 
 from requests.auth import HTTPBasicAuth
@@ -32,7 +33,7 @@ def check_response(response):
 #
 # Requests wrapper
 #
-def api_call(ctx, url, method='get'):
+def api_call(ctx, url, method='get', user_hash={}):
     methods = ['get', 'post', 'put', 'delete', 'head']
     if method.lower() not in methods:
         click.echo("{} is not a valid REST method".format(method))
@@ -44,10 +45,14 @@ def api_call(ctx, url, method='get'):
     # GET requests
     if method.lower() == 'get':
         response = requests.get(url, auth=auth )
+    # POST requests (user add)
+    if method.lower() == 'post':
+        response = requests.post(url, auth=auth, json=user_hash)
 
     return (check_response(response))
-
-
+#
+# Read Config File set auth hash
+#
 def config_reader(conf):
     config = configparser.ConfigParser()
     config.read(conf)
@@ -96,8 +101,18 @@ def config_reader(conf):
 def main(ctx, user, passwd, ssh_key,  expiration, email):
     if not os.path.exists(config_file):
         ctx.invoke(new_config)
+    # username/password info for API calls
+    # is in auth_info. Params to method are
+    # CLI flags (aka users to be created )
     auth_info = config_reader(config_file)
     server_url = "{}/api".format(auth_info['server_url'])
+    user_hash = {
+        "user": user,
+        "passwd": passwd,
+        "ssh_key": ssh_key,
+        "expiration": expiration,
+        "email": email
+    }
 
     ctx.obj = {
         "username": auth_info['username'],
@@ -105,8 +120,17 @@ def main(ctx, user, passwd, ssh_key,  expiration, email):
         "ssh_key": auth_info['ssh_key'],
         "expiration": auth_info['expiration'],
         "email": auth_info['email'],
-        "server_url" : server_url
+        "server_url" : server_url,
+        "user_hash": user_hash
     }
+
+#
+# Delete Users
+#
+@main.command()
+@click.pass_context
+def delete(ctx):
+    pass
 
 #
 # Add users
@@ -114,16 +138,13 @@ def main(ctx, user, passwd, ssh_key,  expiration, email):
 @main.command()
 @click.pass_context
 def add(ctx):
-    # click.echo("Adding user %s" % ctx.obj['user'])
-    # curl -i -X POST
-    # -H "Content-Type: application/json"
-    # -d '{"username":"migu2ell","password":"pythlon"}' http://127.0.0.1:5000/api/users
-    click.echo(ctx.obj['auth_info']['user_name'])
+    url = "{}/users".format(ctx.obj['server_url'])
+    click.echo("Adding user ")
+    # user_hash = json.dumps(ctx.obj['user_hash'])
+    user_hash = ctx.obj['user_hash']
+    response = api_call(ctx, url, method='post',user_hash=user_hash)
+    print(response.text)
 
-@main.command()
-@click.pass_context
-def delete(ctx):
-    pass
 #
 # List users
 #

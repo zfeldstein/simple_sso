@@ -42,13 +42,14 @@ def update_user(id):
 @auth.login_required
 def new_user():
     check_user_permissions(admin_required=True)
-    username = request.json.get('username')
-    password = request.json.get('password')
+    username = request.json.get('user')
+    password = request.json.get('passwd')
     ssh_key = request.json.get('ssh_key')
     expiration = request.json.get('expiration')
     email_addr = request.json.get('email_addr')
     is_admin = request.json.get('is_admin')
     if username is None or password is None:
+        print("User or passwd Null")
         abort(400)# missing arguments
     if Users.query.filter_by(username=username).first() is not None:
         abort(400) # existing user
