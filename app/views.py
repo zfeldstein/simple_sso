@@ -55,10 +55,10 @@ def new_user():
         abort(400) # existing user
     user = Users(username=username)
     user.hash_password(password)
-    user.expiration
-    user.ssh_key
-    user.email_addr
-    user.is_admin
+    user.expiration = expiration
+    user.ssh_key = ssh_key
+    user.email_addr = email_addr
+    user.is_admin = is_admin
     db.session.add(user)
     db.session.commit()
     return (jsonify({'username': user.username}), 201)
