@@ -14,11 +14,38 @@ config_path = '{}/.ssso'.format(home_dir)
 # This is ~/.ssso/config
 config_file = '{}/config'.format(config_path)
 
-def api_auth(conn_info):
-    response = requests.get(
-        conn_info["server_url"],
-        auth=HTTPBasicAuth(conn_info['user_name'], conn_info['passwd'])
-    )
+#
+# Validate response code from API
+#
+def check_response(response):
+    if response.status_code == 401:
+        click.echo("Unauthorized Access")
+        exit()
+    if not response.status_code >= 200 < 300:
+        click.echo(
+            "An error occured, http return code {}".format(
+                response.status_code
+            )
+        )
+        exit()
+    return response
+#
+# Requests wrapper
+#
+def api_call(ctx, url, method='get'):
+    methods = ['get', 'post', 'put', 'delete', 'head']
+    if method.lower() not in methods:
+        click.echo("{} is not a valid REST method".format(method))
+        exit(1)
+    auth = HTTPBasicAuth(
+            ctx.obj['username'],
+            ctx.obj['passwd']
+        )
+    # GET requests
+    if method.lower() == 'get':
+        response = requests.get(url, auth=auth )
+
+    return (check_response(response))
 
 
 def config_reader(conf):
@@ -105,23 +132,7 @@ def delete(ctx):
 def list(ctx):
     url = "{}/users".format(ctx.obj['server_url'])
     click.echo("Listing Users")
-    response = requests.get(
-        url,
-        auth=HTTPBasicAuth(
-            ctx.obj['username'],
-            ctx.obj['passwd']
-        )
-    )
-    if response.status_code == 401:
-        click.echo("Only admins can list users")
-        exit()
-    if not response.status_code == 201:
-        click.echo(
-            "An error occured, http return code {}".format(
-                response.status_code
-            )
-        )
-        exit()
+    response = api_call(ctx, url)
     response = response.json()
     resp_table = []
     for user in response:
