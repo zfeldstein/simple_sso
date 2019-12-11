@@ -95,12 +95,18 @@ def config_reader(conf):
 )
 @click.option(
     '--email',
-    '-a',
+    '-m',
     default=None,
     help='Email address for user'
 )
+@click.option(
+    '--admin',
+    '-a',
+    is_flag=True,
+    help='Use -a to create an admin user'
+)
 # Use config values by default override with CLI
-def main(ctx, user, passwd, ssh_key,  expiration, email):
+def main(ctx, user, passwd, ssh_key,  expiration, email, admin):
     if not os.path.exists(config_file):
         ctx.invoke(new_config)
     # username/password info for API calls
@@ -113,7 +119,8 @@ def main(ctx, user, passwd, ssh_key,  expiration, email):
         "passwd": passwd,
         "ssh_key": ssh_key,
         "expiration": expiration,
-        "email": email
+        "email": email,
+        "is_admin": admin
     }
 
     ctx.obj = {
@@ -149,6 +156,7 @@ def delete(ctx):
 def add(ctx):
     url = "{}/users".format(ctx.obj['server_url'])
     click.echo("Adding user ")
+    click.echo(ctx.obj['user_hash'])
     user_hash = ctx.obj['user_hash']
     response = api_call(ctx, url, method='post',user_hash=user_hash)
     print(response.text)
@@ -171,7 +179,7 @@ def list(ctx):
                 user['username'] or "None",
                 user['email_addr'] or "None",
                 user['expiration'] or "None",
-                user['is_admin'] or "None",
+                user['is_admin'] or "False",
                 user['ssh_key'] or "None"
             ]
         )

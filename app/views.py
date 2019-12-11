@@ -42,11 +42,11 @@ def update_user(id):
 @auth.login_required
 def new_user():
     check_user_permissions(admin_required=True)
-    username = request.json.get('user')
+    username = request.json.get('username')
     password = request.json.get('passwd')
     ssh_key = request.json.get('ssh_key')
     expiration = request.json.get('expiration')
-    email_addr = request.json.get('email_addr')
+    email_addr = request.json.get('email')
     is_admin = request.json.get('is_admin')
     if username is None or password is None:
         print("User or passwd Null")
@@ -58,7 +58,7 @@ def new_user():
     user.expiration = expiration
     user.ssh_key = ssh_key
     user.email_addr = email_addr
-    user.is_admin = is_admin
+    user.is_admin = bool(is_admin)
     db.session.add(user)
     db.session.commit()
     return (jsonify({'username': user.username}), 201)

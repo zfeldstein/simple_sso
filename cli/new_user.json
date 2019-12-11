@@ -1,0 +1,8 @@
+{
+"user": "abe",
+"passwd": "lincoln",
+"ssh_key" : "/path/to/key", 
+"expiration": 90,
+"email_addr": "cubs@example.com",
+"is_admin": false
+}
