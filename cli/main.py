@@ -50,6 +50,8 @@ def api_call(ctx, url, method='get', user_hash={}):
         response = requests.post(url, auth=auth, json=user_hash)
     if method.lower() == 'delete':
         response = requests.delete(url, auth=auth)
+    if method.lower() == 'put':
+        response = requests.put(url, auth=auth, json=user_hash)
 
     return (check_response(response))
 #
@@ -64,7 +66,7 @@ def config_reader(conf):
         "server_url" : config['DEFAULT']['server_url'],
         "ssh_key" : config['DEFAULT']['ssh_key'],
         "expiration" : config['DEFAULT']['expiration'],
-        "email": config['DEFAULT']['email']
+        "email_addr": config['DEFAULT']['email']
     }
     return auth_info
 
@@ -90,7 +92,7 @@ def config_reader(conf):
 @click.option(
     '--expiration',
     '-e',
-    default=90,
+    default=None,
     help='Password for user, leave blank for random'
 )
 @click.option(
@@ -119,16 +121,19 @@ def main(ctx, user, passwd, ssh_key,  expiration, email, admin):
         "passwd": passwd,
         "ssh_key": ssh_key,
         "expiration": expiration,
-        "email": email,
+        "email_addr": email,
         "is_admin": admin
     }
-
+    # TODO
+    # Removed keys w/ undefined values
+    # Find a better way to do this
+    user_hash = {k: v for k, v in user_hash.items() if v is not None}
     ctx.obj = {
         "username": auth_info['username'],
         "passwd": auth_info['passwd'],
         "ssh_key": auth_info['ssh_key'],
         "expiration": auth_info['expiration'],
-        "email": auth_info['email'],
+        "email_addr": auth_info['email_addr'],
         "server_url" : server_url,
         "user_hash": user_hash
     }
@@ -159,6 +164,21 @@ def add(ctx):
     click.echo(ctx.obj['user_hash'])
     user_hash = ctx.obj['user_hash']
     response = api_call(ctx, url, method='post',user_hash=user_hash)
+    print(response.text)
+#
+# Update User
+#
+@main.command()
+@click.pass_context
+def update(ctx):
+    username = ctx.obj['user_hash']['username']
+    url = "{}/users/{}".format(
+        ctx.obj['server_url'],
+        username
+    )
+    click.echo("Updating User {}".format(username))
+    user_hash = ctx.obj['user_hash']
+    response = api_call(ctx, url, method='put', user_hash=user_hash)
     print(response.text)
 
 #
@@ -197,10 +217,6 @@ def list(ctx):
 def info(ctx):
     pass
 
-@main.command()
-@click.pass_context
-def update(ctx):
-    pass
 # Create a ~/.ssso/config and use for auth with server
 @main.command()
 @click.pass_context
