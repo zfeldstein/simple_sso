@@ -214,8 +214,16 @@ def list(ctx):
 
 @main.command()
 @click.pass_context
-def info(ctx):
-    pass
+def show(ctx):
+    username = ctx.obj['user_hash']['username']
+    url = "{}/users/{}".format(
+        ctx.obj['server_url'],
+        username
+    )
+    click.echo("")
+    user_hash = ctx.obj['user_hash']
+    response = api_call(ctx, url, method='get' )
+    print(response.text)
 
 # Create a ~/.ssso/config and use for auth with server
 @main.command()
