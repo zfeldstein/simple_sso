@@ -6,12 +6,12 @@ from app.models import Users, UsersSchema
 users_schema = UsersSchema(many=True)
 
 #This method is called for user specific resources
-def check_user_permissions(id=0, admin_required=False):
+def check_user_permissions(username=None, admin_required=False):
     user = Users.query.filter_by(username=g.user.username).first()
     if user.is_admin:
         return True
     if not admin_required:
-        if id == g.user.id:
+        if username == g.user.username:
             return True
     abort(401)
 
@@ -27,15 +27,27 @@ def verify_password(username, password):
     g.user = user
     return True
 
-@app.route('/api/users/<int:id>', methods=['PUT'])
+@app.route('/api/users/<string:username>', methods=['PUT'])
 @auth.login_required
-def update_user(id):
-    check_user_permissions(id)
-    print(request.json)
-    user = Users.query.get(id)
+def update_user(username):
+    check_user_permissions()
+    user = Users.query.filter_by(username=username).first()
+    valid_fields = [
+        "passwd",
+        "ssh_key",
+        "expiration",
+        "email_addr",
+        "is_admin"
+    ]
+    for k, v in request.json.items():
+        # Only set the attr if its valid
+        if k in valid_fields:
+            # This sets user Objects values
+            # i.e user.ssh_key = ssh_key
+            setattr(user, k, v)
     if not user:
         abort(404)
-    return jsonify("world")
+    return (jsonify({'msg': "User Updated"}), 201)
 
 
 @app.route('/api/users', methods=['POST'])
@@ -73,6 +85,15 @@ def get_user():
     users = Users.query.all()
     return(jsonify(users_schema.dump(users)), 201)
 
+
+# Show INFO on User
+@app.route('/api/users/<string:username>', methods=['GET'])
+@auth.login_required
+def show_user(username):
+    check_user_permissions()
+    user = Users.query.filter_by(username=username)
+    return(jsonify(users_schema.dump(user)))
+
 # Delete User
 @app.route('/api/users/<string:username>', methods=['DELETE'])
 @auth.login_required
@@ -91,11 +112,6 @@ def get_auth_token():
     token = g.user.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
 
-
-@app.route('/api/resource')
-@auth.login_required
-def get_resource():
-    return jsonify({'data': 'Hello, %s!' % g.user.username})
 
 
 if __name__ == '__main__':
