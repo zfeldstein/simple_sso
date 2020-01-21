@@ -1,9 +1,12 @@
 import os
-from app import app, auth, db
+from app import create_app, auth, db
 from flask import abort, request, jsonify, g, url_for, Response
 from app.models import Users, UsersSchema
 
 users_schema = UsersSchema(many=True)
+
+# config_name = os.getenv('APP_SETTINGS')
+app = create_app()
 
 #This method is called for user specific resources
 def check_user_permissions(username=None, admin_required=False):

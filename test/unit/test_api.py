@@ -1,14 +1,18 @@
 import pytest
 from app.models import Users
 
-def test_new_user():
+@pytest.fixture(scope='module')
+def user():
+    user = Users(username='rizzo')
+    return user
+
+def test_new_user(user):
     """
     GIVEN a User model
     WHEN a new User is created
     THEN check the email, hashed_password, authenticated, and role fields are defined correctly
     """
     password = 'cubs2020'
-    user = Users(username='rizzo')
     user.hash_password(password)
     user.expiration = 60
     user.ssh_key = '/path/to/key'
