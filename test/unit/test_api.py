@@ -1,4 +1,4 @@
-import pytestw
+import pytest
 from app.models import Users
 
 @pytest.fixture(scope='module')
