@@ -3,7 +3,7 @@ import pytest
 from app import create_app
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def test_client():
     flask_app = create_app()
     testing_client = flask_app.test_client()
@@ -16,14 +16,14 @@ def test_client():
     ctx.pop()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def init_database():
     # Create the database and the database table
     db.create_all()
 
     # Insert user data
-    user1 = User(email='patkennedy79@gmail.com', plaintext_password='FlaskIsAwesome')
-    user2 = User(email='kennedyfamilyrecipes@gmail.com', plaintext_password='PaSsWoRd')
+    user1 = User(email="patkennedy79@gmail.com", plaintext_password="FlaskIsAwesome")
+    user2 = User(email="kennedyfamilyrecipes@gmail.com", plaintext_password="PaSsWoRd")
     db.session.add(user1)
     db.session.add(user2)
 

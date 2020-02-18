@@ -6,13 +6,14 @@ from flask_migrate import MigrateCommand
 
 app = create_app()
 manager = Manager(app)
-  
+
 # these names will be available inside the shell without explicit import
 def make_shell_context():
     return dict(Users=Users, UsersSchema=UsersSchema)
 
-manager.add_command('shell', Shell(make_context=make_shell_context))
-manager.add_command('db', MigrateCommand)
 
-if __name__ == '__main__':
+manager.add_command("shell", Shell(make_context=make_shell_context))
+manager.add_command("db", MigrateCommand)
+
+if __name__ == "__main__":
     manager.run()
