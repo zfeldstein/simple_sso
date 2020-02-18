@@ -1,5 +1,6 @@
 import os
 from app import create_app, auth, db
+from . import main
 from flask import abort, request, jsonify, g, url_for, Response
 from app.models import Users, UsersSchema
 
@@ -30,7 +31,7 @@ def verify_password(username, password):
     g.user = user
     return True
 
-@app.route('/api/users/<string:username>', methods=['PUT'])
+@main.route('/api/users/<string:username>', methods=['PUT'])
 @auth.login_required
 def update_user(username):
     check_user_permissions()
@@ -53,7 +54,7 @@ def update_user(username):
     return (jsonify({'msg': "User Updated"}), 201)
 
 
-@app.route('/api/users', methods=['POST'])
+@main.route('/api/users', methods=['POST'])
 @auth.login_required
 def new_user():
     check_user_permissions(admin_required=True)
@@ -81,7 +82,7 @@ def new_user():
     return get_user(user.id)
 
 # List users
-@app.route('/api/users', methods=['GET'])
+@main.route('/api/users', methods=['GET'])
 @auth.login_required
 def get_user():
     check_user_permissions()
@@ -90,7 +91,7 @@ def get_user():
 
 
 # Show INFO on User
-@app.route('/api/users/<string:username>', methods=['GET'])
+@main.route('/api/users/<string:username>', methods=['GET'])
 @auth.login_required
 def show_user(username):
     check_user_permissions()
@@ -98,7 +99,7 @@ def show_user(username):
     return(jsonify(users_schema.dump(user)))
 
 # Delete User
-@app.route('/api/users/<string:username>', methods=['DELETE'])
+@main.route('/api/users/<string:username>', methods=['DELETE'])
 @auth.login_required
 def del_user(username):
     if username == 'admin':
@@ -109,7 +110,7 @@ def del_user(username):
     db.session.commit()
     return(jsonify({"response": "User {} deleted".format(user.username)}), 201)
 
-@app.route('/api/token')
+@main.route('/api/token')
 @auth.login_required
 def get_auth_token():
     token = g.user.generate_auth_token(600)
@@ -117,7 +118,7 @@ def get_auth_token():
 
 
 
-if __name__ == '__main__':
-    # if not os.path.exists('d3.sqlite'):
-    #     db.create_all()
-    app.run(debug=False)
+# if __name__ == '__main__':
+#     # if not os.path.exists('d3.sqlite'):
+#     #     db.create_all()
+#     app.run(debug=False)

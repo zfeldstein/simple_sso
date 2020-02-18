@@ -21,6 +21,9 @@ def create_app(conf_file='app.config.ProdConfig'):
     ma.init_app(app)
     db.init_app(app)
 
-    # from app.views import
+    # from . import views
+    # register blueprints
+    from .main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
     return app
 
