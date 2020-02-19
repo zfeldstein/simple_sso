@@ -1,12 +1,7 @@
-pipeline {
-    agent { docker { image 'python:3.5.1' } }
-    stages {
-        stage('build') {
-            steps {
-                sh 'python --version'
-            }
-        }
-    }
+node {
+  git '…' // checks out Dockerfile & Makefile
+  def myEnv = docker.build 'my-environment:snapshot'
+  myEnv.inside {
+    sh 'make test'
+  }
 }
-
-
