@@ -1,4 +1,5 @@
 node {
+    checkout scm
     stage('Setup Env') {
     sh '''
        echo "Setting up Python Environment"
