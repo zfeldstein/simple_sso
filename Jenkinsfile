@@ -1,4 +1,5 @@
 node {
+    checkout scm
     stage('Setup Env') {
     sh '''
        echo "Setting up Python Environment"
@@ -12,14 +13,14 @@ node {
     stage('Unit Test'){
      sh '''
      source ./venv/bin/activate
-     ./venv/bin/pytest
-     
+     pytest
      '''
     }
     stage('Build Container') {
       sh 'docker build -t sso-api .'
     }
     stage('Integration Tests')
-      sh 'sudo docker run --name sso-api-test -d -p 5000:5000 sso-api'
-      sh 'curl localhost:5000/api/users'
+      sh 'docker stop sso-api-test'
+      sh 'docker rm sso-api-test'
+      sh 'docker run --name sso-api-test -d -p 5000:5000 sso-api'
 }
