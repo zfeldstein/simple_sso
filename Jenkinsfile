@@ -20,6 +20,6 @@ node {
       sh 'docker build -t sso-api .'
     }
     stage('Integration Tests')
-      sh 'sudo docker run --name sso-api-test -d -p 5000:5000 sso-api'
+      sh 'docker run --name sso-api-test -d -p 5000:5000 sso-api'
       sh 'curl localhost:5000/api/users'
 }
