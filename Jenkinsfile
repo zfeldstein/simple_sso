@@ -5,11 +5,15 @@ node {
        # TODO(zf) Make venv off BUILDID
        echo "Creating VirtualEnv"
        virtualenv -p python3 venv
-       ./venv/bin/pip3 install -r "./requirements.txt"
+       source ./venv/bin/activate
+       pip install -r "./requirements.txt"
     '''
     }
     stage('Unit Test'){
-     sh './venv/bin/pytest'
+     sh '''
+     source ./venv/bin/activate
+     pytest
+     '''
     }
     stage('Build Container') {
       sh 'docker build -t sso-api .'
