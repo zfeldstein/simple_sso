@@ -21,5 +21,6 @@ node {
     }
     stage('Integration Tests')
       sh 'docker run --name sso-api-test -d -p 5000:5000 sso-api'
+      sh 'sleep 5'
       sh 'curl localhost:5000/api/users'
 }
