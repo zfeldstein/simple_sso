@@ -20,6 +20,7 @@ node {
       sh 'docker build -t sso-api .'
     }
     stage('Integration Tests')
+      sh 'docker stop sso-api-test'
       sh 'docker rm sso-api-test'
       sh 'docker run --name sso-api-test -d -p 5000:5000 sso-api'
 }
